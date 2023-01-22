@@ -56,8 +56,7 @@ export default function MapWrapper(props) {
   }, []);
   
   useEffect( () => {
-
-    if (props.features.length) {
+    if (!props.features) {
       featuresLayer.setSource(
         new VectorSource({
           features: props.features
@@ -65,7 +64,7 @@ export default function MapWrapper(props) {
       )
     };
 
-  },[props.features, featuresLayer])
+  },[props.features, featuresLayer]);
 
   const handleMapClick = (event) => {
 

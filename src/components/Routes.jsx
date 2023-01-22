@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, } from "react";
 import axios from 'axios';
 
 export default function Routes(props) {
@@ -10,29 +10,29 @@ export default function Routes(props) {
 
   const fetchRoutes = async () => {
     const res = await axios.get(process.env.REACT_APP_BASE_URL);
-    console.log(res)
     let copyData = [...res.data];
     setRoutes(res.data);
     setCopyRoutes(copyData);
   };
 
   const handleClick = useCallback(async (id) => {
-    //setId( e.target.value);
-    // const _id = e.target.value;
-    console.log('id', id);
+    if (!id) return;
+    try {
     const res = await axios.get(`https://janti.ru:5381/Main/GetRouteData?id=${id}`);
-    console.log('res', res);
     setRoute(res);
-    console.log('route', route);
     props.getChildContext(route);
     props.getRouteColor(route.color);
-  }, [route, props]);
+    } catch (e) {
+      console.error(`Something going wrong: ${e.message}`);
+    }
+    
+  }, [route, props,]);
 
   useEffect(() => {
     fetchRoutes();
   }, []);
 
-  useEffect(() => {handleClick(id)}, [handleClick, id]);
+  useEffect(() => {handleClick(id)}, [handleClick, id, ]);
 
   const handleUserInput = (e) => {
     setUserInput(e.target.value);
@@ -45,7 +45,6 @@ export default function Routes(props) {
   };
 
   return (
-    // <RoutesContex.Provider value={route}>
       <div className="routes-container">
         <h2>Выберете маршрут</h2>
         <input
@@ -54,12 +53,12 @@ export default function Routes(props) {
           onKeyDown={filteredRoute}
         />
         <ul>
-          {copyRoutes.map((route) => (
+          {props.features.map((route) => (
             <li key={route.id}>
               <label>
-                <input type="radio" value={route.id} onClick={ () => {
+                <input type="radio" value={route.id} onClick={() => {
                   setId(route.id);
-                  handleClick(id);
+                  handleClick();
                 }
                   }/>
               </label>
@@ -68,7 +67,6 @@ export default function Routes(props) {
           ))}
         </ul>
         <button onClick={() =>{ 
-          console.log('hiu', route);
           setCopyRoutes(route)}}>Отмена</button>
       </div>
   );

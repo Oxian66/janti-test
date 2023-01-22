@@ -1,50 +1,48 @@
 import './App.css';
 import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import Feature from 'ol/Feature';
 
 import MapWrapper from './components/MapWrapper';
 import Routes from './components/Routes';
-import { ToastContainer } from 'react-toastify';
 
 function App() {
   const [features, setFeatures] = useState([]);
   const [color, setColor] = useState('');
+  const [routes, setRoutes] = useState([]);
+  const [route, setRoute] = useState([]);
+  const [copyRoutes, setCopyRoutes] = useState([]);
 
-  const getChildContext = (props) => {
-    setFeatures(props);
-    console.log('features', features);
+  const fetchRoutes = async () => {
+    const res = await axios.get(process.env.REACT_APP_BASE_URL);
+    let copyData = [...res.data];
+    setRoutes(res.data);
+    setCopyRoutes(copyData);
   };
+
+  const getChildContext = useCallback((props) => {
+    setRoute(props);
+    
+  },[]);
 
   const getRouteColor = (props) => {
     setColor(props);
-  }
+  };
 
+  useEffect(() => {
+    const res = fetchRoutes();
+    setFeatures(res);
+  }, []);
 
-  // useEffect( () => {
-  //   fetch('/mock-geojson-api.json')
-  //     .then(response => response.json())
-  //     .then( (fetchedFeatures) => {
-
-  //       // parse fetched geojson into OpenLayers features
-  //       //  use options to convert feature from EPSG:4326 to EPSG:3857
-  //       const wktOptions = {
-  //         dataProjection: 'EPSG:4326',
-  //         featureProjection: 'EPSG:3857'
-  //       }
-  //       const parsedFeatures = new GeoJSON().readFeatures(fetchedFeatures, wktOptions)
-
-  //       // set features into state (which will be passed into OpenLayers
-  //       //  map component as props)
-  //       setFeatures(parsedFeatures)
-  //     })
-  // },[]);
+  useEffect(() => {
+    getChildContext();
+  },[getChildContext])
 
 
   return (
     <div className="App">
-      <Routes getChildContext={getChildContext} getRouteColor={getRouteColor}/>
-      <MapWrapper features={features} color={color}/>
-      <ToastContainer />
+      <Routes getChildContext={getChildContext} getRouteColor={getRouteColor} features={routes} />
+      <MapWrapper features={features} color={color} />
     </div>
   );
 }
