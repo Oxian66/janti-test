@@ -1,15 +1,24 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
-
-// openlayers
-// import GeoJSON from 'ol/format/GeoJSON'
+import React, { useState, useEffect, useCallback } from 'react';
 import Feature from 'ol/Feature';
 
 import MapWrapper from './components/MapWrapper';
 import Routes from './components/Routes';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   const [features, setFeatures] = useState([]);
+  const [color, setColor] = useState('');
+
+  const getChildContext = (props) => {
+    setFeatures(props);
+    console.log('features', features);
+  };
+
+  const getRouteColor = (props) => {
+    setColor(props);
+  }
+
 
   // useEffect( () => {
   //   fetch('/mock-geojson-api.json')
@@ -33,8 +42,9 @@ function App() {
 
   return (
     <div className="App">
-      <Routes />
-      <MapWrapper features={features}/>
+      <Routes getChildContext={getChildContext} getRouteColor={getRouteColor}/>
+      <MapWrapper features={features} color={color}/>
+      <ToastContainer />
     </div>
   );
 }

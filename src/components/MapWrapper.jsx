@@ -5,12 +5,9 @@ import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { ZoomSlider } from "ol/control.js";
+import { Popover } from "bootstrap";
 import "ol/ol.css";
-
-import XYZ from "ol/source/XYZ";
 import { transform } from "ol/proj";
-import { toStringXY } from "ol/coordinate";
-import Modal from "./Modal";
 
 export default function MapWrapper(props) {
   const [map, setMap] = useState();
@@ -29,6 +26,10 @@ export default function MapWrapper(props) {
   useEffect(() => {
     const initalFeaturesLayer = new VectorLayer({
       source: new VectorSource(),
+      style: {
+        'circle-radius': '3px',
+        'circle-fill-color': `${props.color}`,
+      }
     });
 
     const source = new OSM();
@@ -36,13 +37,14 @@ export default function MapWrapper(props) {
       source: source,
     });
     const zoomslider = new ZoomSlider();
+
     const initialMap = new Map({
       target: mapElement.current,
-      layers: [layer],
+      layers: [layer, initalFeaturesLayer],
       view: new View({
         projection: "EPSG:3857",
         center: [0, 0],
-        zoom: 2,
+        zoom: 3,
       }),
     });
 
@@ -61,31 +63,35 @@ export default function MapWrapper(props) {
           features: props.features
         })
       )
-      // fit map to feature extent (with 100px of padding)
-      map.getView().fit(featuresLayer.getSource().getExtent(), {
-        padding: [100,100,100,100]
-      })
+    };
 
-    }
+  },[props.features, featuresLayer])
 
-  },[props.features])
-
-  // map click handler
   const handleMapClick = (event) => {
 
     // get clicked coordinate using mapRef to access current React state inside OpenLayers callback
     //  https://stackoverflow.com/a/60643670
     const clickedCoord = mapRef.current.getCoordinateFromPixel(event.pixel);
+    const element = popup.getElement();
+    let popover = Popover.getInstance(element);
 
-    // transform coord to EPSG 4326 standard Lat Long
-    const transormedCoord = transform(clickedCoord, 'EPSG:3857', 'EPSG:4326')
+    setSelectedCoord(clickedCoord);
 
-    // set React state
-    setSelectedCoord( transormedCoord )
-
-    console.log(transormedCoord)
-
+    popover = new Popover(element, {
+      animation: false,
+      container: element,
+      content: '<p>The location you clicked was:</p>',
+      html: true,
+      placement: 'top',
+      title: 'Welcome to OpenLayers',
+    });
+    popover.show();
   };
 
-  return <div  ref={mapElement} className="map-container"></div>;
+  return (
+    <>
+    <div className="modal"></div>
+    <div  ref={mapElement} className="map-container"></div>
+    </>
+  );
 }
