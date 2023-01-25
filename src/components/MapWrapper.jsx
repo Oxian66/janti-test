@@ -8,6 +8,7 @@ import { ZoomSlider } from "ol/control.js";
 import Point from "ol/geom/Point.js";
 import { Style, Circle as CircleStyle, Fill } from "ol/style";
 import Polyline from "ol/format/Polyline.js";
+import GeoJSON from "ol/format/GeoJSON.js";
 import LineString from "ol/geom/LineString.js";
 import { fromLonLat } from "ol/proj";
 import { Popover } from "bootstrap";
@@ -27,14 +28,35 @@ export default function MapWrapper(props) {
     stopEvent: false,
   });
 
+  const createPathCoords = () => {
+    return props.features.length
+      ? props.features.map((item) => [+item.lon, +item.lat])
+      : [];
+  };
+
+  const currentPath = createPathCoords();
+  console.log("c", currentPath);
+
+
+  const data = {
+    type: 'Feature',
+    properties: {},
+    geometry : {
+      type: 'LineString',
+      coordinates: currentPath,
+    },
+  };
+
+  const feature = new GeoJSON().readFeature(data, {
+    featureProjection: 'EPSG:3857'
+  });
+
   useEffect(() => {
     const initalFeaturesLayer = new VectorLayer({
-      source: new VectorSource(),
-      style: {
-        "circle-radius": "3px",
-        "circle-fill-color": `${props.color}`,
-      },
-      features: [],
+      source: new VectorSource({
+        features: [feature],
+          format: new GeoJSON(),
+      }),
     });
 
     const source = new OSM();
@@ -47,9 +69,10 @@ export default function MapWrapper(props) {
       target: mapElement.current,
       layers: [layer, initalFeaturesLayer],
       view: new View({
-        projection: "EPSG:3857",
+        // projection: "EPSG:3857",
         center: [0, 0],
-        zoom: 3,
+        zoom: 2,
+        constrainResolution: true,
       }),
     });
 
@@ -58,54 +81,36 @@ export default function MapWrapper(props) {
     initialMap.addControl(zoomslider);
     setFeaturesLayer(initalFeaturesLayer);
     initialMap.addOverlay(popup);
+
   }, []);
+ 
+  //useEffect(() => {
+    //if (props.features.length) {
+      // const startMarker = new Feature({
+      //   type: 'icon',
+      //   geometry: new Point(props.route[0]),
+      // });
+      // const endMarker = new Feature({
+      //   type: 'icon',
+      //   geometry: new Point(props.route.at(-1)),
+      // });
+      
+      // const routeFeature = new Feature({
+      //   geometry: new Polyline({ factor: 1e6 }).writeGeometry(
+      //     new LineString(currentPath)
+      //   ),
+      // })
+      // featuresLayer.setSource(
+      //   new VectorSource({
+      //     features: [routeFeature],
+      //   })
+      // );
+ 
+    // setFeaturesLayer(addMarkers(marks, props.color));
+   // }
+   // console.log("cl", featuresLayer);
 
-  const createPathCoords = () => {
-    return props.features.length
-      ? props.features.map((item) => [+item.lon, +item.lat])
-      : [];
-  };
-  const addMarkers = (lonLatArray, color) => {
-    const pointStyle = new Style({
-      image: new CircleStyle({
-        radius: 3,
-        fill: new Fill({
-          color: color,
-        }),
-      }),
-    });
-    const features = lonLatArray.map((item) => {
-      const feature = new Feature({
-        geometry: new Point(fromLonLat(item)),
-      });
-      feature.setStyle(pointStyle);
-      return feature;
-    });
-    return features;
-  };
-
-  const currentPath = createPathCoords();
-  console.log("c", currentPath);
-
-  const route = new Polyline({
-    factor: 1e6,
-  }).writeGeometry(new LineString(currentPath));
-
-  useEffect(() => {
-    if (props.features.length) {
-      featuresLayer.setSource(
-        new VectorSource({
-          features: [props.features],
-          style: new Style({
-            geometry: new Polyline({ factor: 1e6 }).writeGeometry(
-              new LineString(currentPath)
-            ),
-          }),
-        })
-      );
-    }
-    console.log("cl", featuresLayer);
-  }, [props.features, featuresLayer, currentPath]);
+  //}, [props.features]);
 
   const handleMapClick = (e) => {
     const clickedCoord = e.coordinate;
@@ -116,7 +121,7 @@ export default function MapWrapper(props) {
     popover = new Popover(element, {
       animation: false,
       container: element,
-      content: "<p>The location you clicked was:</p>",
+      content: `<p>The location you clicked was: ${clickedCoord[0]}-${clickedCoord[1]}</p>`,
       html: true,
       placement: "top",
       title: "",
@@ -126,7 +131,6 @@ export default function MapWrapper(props) {
 
   return (
     <>
-      <div className="modal"></div>
       <div ref={mapElement} className="map-container"></div>
     </>
   );

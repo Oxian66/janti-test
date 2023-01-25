@@ -11,12 +11,7 @@ function App() {
   const [id, setId] = useState();
   const [userInput, setUserInput] = useState("");
 
-  const fetchRoutes = async () => {
-    const res = await axios.get(process.env.REACT_APP_BASE_URL);
-    let copyData = [...res.data];
-    setRoutes(res.data);
-    setCopyRoutes(copyData);
-  };
+  
 
   const handleClick = async (e) => {
     const _id = e.target.value;
@@ -42,8 +37,13 @@ function App() {
   };
 
   useEffect(() => {
-    const res = fetchRoutes();
-    // setFeatures(res.data);
+    const fetchRoutes = async () => {
+      const res = await axios.get(process.env.REACT_APP_BASE_URL);
+      let copyData = [...res.data];
+      setRoutes(res.data);
+      setCopyRoutes(copyData);
+    };
+    fetchRoutes();
   }, []);
 
   console.log("r", route);
