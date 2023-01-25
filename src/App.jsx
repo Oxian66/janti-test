@@ -1,17 +1,15 @@
-import './App.css';
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import Feature from 'ol/Feature';
-
-import MapWrapper from './components/MapWrapper';
-import Routes from './components/Routes';
+import "./App.css";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import MapWrapper from "./components/MapWrapper";
 
 function App() {
-  const [features, setFeatures] = useState([]);
-  const [color, setColor] = useState('');
+  const [color, setColor] = useState("");
   const [routes, setRoutes] = useState([]);
   const [route, setRoute] = useState([]);
   const [copyRoutes, setCopyRoutes] = useState([]);
+  const [id, setId] = useState();
+  const [userInput, setUserInput] = useState("");
 
   const fetchRoutes = async () => {
     const res = await axios.get(process.env.REACT_APP_BASE_URL);
@@ -20,29 +18,73 @@ function App() {
     setCopyRoutes(copyData);
   };
 
-  const getChildContext = useCallback((props) => {
-    setRoute(props);
-    
-  },[]);
+  const handleClick = async (e) => {
+    const _id = e.target.value;
+    try {
+      const res = await axios.get(
+        `https://janti.ru:5381/Main/GetRouteData?id=${_id}`
+      );
+      setRoute(res.data);
+    } catch (e) {
+      console.error(`Something going wrong: ${e.message}`);
+    }
+  };
 
-  const getRouteColor = (props) => {
-    setColor(props);
+  const handleUserInput = (e) => {
+    setUserInput(e.target.value);
+  };
+
+  const filteredRoute = (e) => {
+    if (e.key === "Enter") {
+      const filtered = copyRoutes.filter((route) => route.name === userInput);
+      setCopyRoutes(filtered);
+    }
   };
 
   useEffect(() => {
     const res = fetchRoutes();
-    setFeatures(res);
+    // setFeatures(res.data);
   }, []);
 
-  useEffect(() => {
-    getChildContext();
-  },[getChildContext])
-
+  console.log("r", route);
 
   return (
     <div className="App">
-      <Routes getChildContext={getChildContext} getRouteColor={getRouteColor} features={routes} />
-      <MapWrapper features={features} color={color} />
+      <div className="routes-container">
+        <h2>Выберете маршрут</h2>
+        <input
+          type="search"
+          onChange={handleUserInput}
+          onKeyDown={filteredRoute}
+        />
+        <ul>
+          {copyRoutes.map((route) => (
+            <li key={route.id}>
+              <label>
+                <input
+                  type="radio"
+                  value={route.id}
+                  onClick={(e) => {
+                    setId(route.id);
+                    setColor(route.color);
+                    handleClick(e);
+                  }}
+                />
+              </label>
+              {route.name}
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={() => {
+            setCopyRoutes(routes);
+            setUserInput("");
+          }}
+        >
+          Отмена
+        </button>
+      </div>
+      <MapWrapper features={route} color={color} />
     </div>
   );
 }
