@@ -48,7 +48,7 @@ export default function MapWrapper(props) {
   };
 
   const feature = new GeoJSON().readFeature(data, {
-    featureProjection: 'EPSG:3857'
+    featureProjection: 'WGS84'
   });
 
   useEffect(() => {
@@ -69,7 +69,6 @@ export default function MapWrapper(props) {
       target: mapElement.current,
       layers: [layer, initalFeaturesLayer],
       view: new View({
-        // projection: "EPSG:3857",
         center: [0, 0],
         zoom: 2,
         constrainResolution: true,

@@ -17,7 +17,7 @@ function App() {
     const _id = e.target.value;
     try {
       const res = await axios.get(
-        `https://janti.ru:5381/Main/GetRouteData?id=${_id}`
+        `process.env.REACT_APP_GET_ROUTE=${_id}`
       );
       setRoute(res.data);
     } catch (e) {
