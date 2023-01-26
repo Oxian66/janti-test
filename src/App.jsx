@@ -36,7 +36,7 @@ function App() {
 
   useEffect(() => {
     const fetchRoutes = async () => {
-      const res = await axios.get(process.env.REACT_APP_BASE_URL);
+      const res = await axios.get('https://janti.ru:5381/Main/GetRoutes');
       let copyData = [...res.data];
       setRoutes(res.data);
       setCopyRoutes(copyData);
