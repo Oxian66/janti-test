@@ -6,11 +6,10 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { ZoomSlider } from "ol/control.js";
 import Point from "ol/geom/Point.js";
-import { Style, Circle as CircleStyle, Fill } from "ol/style";
+import { Style, Circle as CircleStyle, Fill, Stroke } from "ol/style";
 import Polyline from "ol/format/Polyline.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import LineString from "ol/geom/LineString.js";
-import { fromLonLat } from "ol/proj";
 import { Popover } from "bootstrap";
 import "ol/ol.css";
 
@@ -30,14 +29,13 @@ export default function MapWrapper(props) {
 
   const createPathCoords = () => {
     return props.features.length
-      ? props.features.map((item) => [+item.lon, +item.lat])
+      ? props.features.map((item) => [item[0], item[1]])
       : [];
   };
 
   const currentPath = createPathCoords();
   console.log("c", currentPath);
-
-
+  
   const data = {
     type: 'Feature',
     properties: {},
@@ -45,10 +43,15 @@ export default function MapWrapper(props) {
       type: 'LineString',
       coordinates: currentPath,
     },
+    style: new Style({
+      stroke: new Stroke({
+        color: props.color
+      })
+    }),
   };
 
   const feature = new GeoJSON().readFeature(data, {
-    featureProjection: 'WGS84'
+    featureProjection: ' EPSG:3857'
   });
 
   useEffect(() => {
@@ -105,7 +108,7 @@ export default function MapWrapper(props) {
       //   })
       // );
  
-    // setFeaturesLayer(addMarkers(marks, props.color));
+    // setFeaturesLayer(routeFeatures);
    // }
    // console.log("cl", featuresLayer);
 
@@ -113,6 +116,8 @@ export default function MapWrapper(props) {
 
   const handleMapClick = (e) => {
     const clickedCoord = e.coordinate;
+    const div = document.createElement('div');
+    div.classList.add('modal');
     const element = popup.getElement();
     let popover = Popover.getInstance(element);
     setSelectedCoord(clickedCoord);

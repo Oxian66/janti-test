@@ -11,13 +11,11 @@ function App() {
   const [id, setId] = useState();
   const [userInput, setUserInput] = useState("");
 
-  
-
   const handleClick = async (e) => {
     const _id = e.target.value;
     try {
       const res = await axios.get(
-        `process.env.REACT_APP_GET_ROUTE=${_id}`
+        `https://janti.ru:5381/Main/GetRouteData?id=${_id}`
       );
       setRoute(res.data);
     } catch (e) {
@@ -45,8 +43,6 @@ function App() {
     };
     fetchRoutes();
   }, []);
-
-  console.log("r", route);
 
   return (
     <div className="App">
