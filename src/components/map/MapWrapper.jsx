@@ -7,102 +7,52 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import { ZoomSlider } from "ol/control.js";
 import { LineString, MultiPoint, Point } from 'ol/geom';
-import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from "ol/style";
+import { Style, Circle as CircleStyle, Fill, Stroke, Icon, } from "ol/style";
 // import Polyline from "ol/format/Polyline.js";
-import GeoJSON from "ol/format/GeoJSON.js";
 import { Popover } from "bootstrap";
 import "ol/ol.css";
-import { toast } from "react-hot-toast";
+// import { toast } from "react-hot-toast";
 
 export default function MapWrapper(props) {
   const [map, setMap] = useState([]);
   const [featuresLayer, setFeaturesLayer] = useState();
   const [selectedCoord, setSelectedCoord] = useState();
-  //НАДО ПОПРОБОВАТЬ ВО ВТОРОМ ЭФФЕКТЕ ВЕКТОРУ СОУРС ПОСТАВИТЬ
 
   const mapElement = useRef();
   const mapRef = useRef();
   mapRef.current = map;
   const element = document.getElementById('popup');
 
-  const popup = new Overlay({
-    element: element,
-    stopEvent: false,
-  });
-
-  // const createPathCoords = () => {
-  //   return props.features.length
-  //     ? props.features.map((item) => [item.lon, item.lat])
-  //     : [];
-  // };
-
-  // const currentCoordsArray = createPathCoords();
-
   const currentCoordsArray = props.features.map((c) => [
     c.lon,
     c.lat,
   ]);
   console.log("c", currentCoordsArray);
+  const popup = new Overlay({
+    element: element,
+    stopEvent: false,
+  });
 
-  // const points = currentCoordsArray.map((point) => new Point(point).transform('EPSG:4326', 'EPSG:3857',));
-  // const pointsFeature = new Feature({
-  //   type: 'point',
-  //   geometry: new Point(currentCoordsArray).transform(
-  //     'EPSG:4326',
-  //     'EPSG:3857',
-  //   ),
-  // });
+  let popover;
 
-  // const line = new LineString(points);
-
-  // const lineFeature = new Feature({
-  //   type: 'line',
-  //   geometry: line,
-  //   coordinates: points,
-  // });
-
-  
-  // const startMarker = new Feature({
-  //   type: 'icon-start',
-  //   geometry: new Point(line.getFirstCoordinate()),
-  // });
-  // const endMarker = new Feature({
-  //   type: 'icon-end',
-  //   geometry: new Point(line.getLastCoordinate()),
-  // });
-
-  // const styles = {
-  //   'line': new Style({
-  //     fill: new Fill({color: 'red'})
-  //   }),
-  //   'icon-start': new Style({
-  //     image: new Icon({
-  //       anchor: [0.5, 1],
-  //       src: 'public/start-marker.png',
-  //     }),
-  //   }),
-  //   'icon-end': new Style({
-  //     image: new Icon({
-  //       anchor: [0.5, 1],
-  //       src: 'public/end-marker.png',
-  //     }),
-  //   }),
-  //   'geoMarker': new Style({
-  //     image: new CircleStyle({
-  //       radius: 7,
-  //       fill: new Fill({color: 'black'}),
-  //       stroke: new Stroke({
-  //         color: 'white',
-  //         width: 2,
-  //       }),
-  //     }),
-  //   }),
-  //   'point': new Style({
-  //     'circle-radius': 9,
-  //       'circle-fill-color': 'red',
-
-  //   })
-  // };
+  function handleMapClick (e) {
+    const clickedCoord = e.coordinate;
+    const element = popup.getElement();
+    setSelectedCoord(clickedCoord);
+    if (popover) {
+      popover.dispose();
+      popover = undefined;
+    }
+    popover = new Popover(element, {
+      animation: false,
+      container: element,
+      content: `<p>The location you clicked was: ${clickedCoord[0]}-${clickedCoord[1]}</p>`,
+      html: true,
+      placement: "top",
+      title: "",
+    });
+    popover.show();
+  };
 
   useEffect(() => {
     const initalFeaturesLayer = new VectorLayer({
@@ -119,7 +69,7 @@ export default function MapWrapper(props) {
 
     const initialMap = new Map({
       target: mapElement.current,
-      layers: [layer, initalFeaturesLayer, ],
+      layers: [layer, initalFeaturesLayer],
       view: new View({
         center: [0, 0],
         zoom: 2,
@@ -132,16 +82,17 @@ export default function MapWrapper(props) {
     initialMap.addControl(zoomslider);
     setFeaturesLayer(initalFeaturesLayer);
     initialMap.addOverlay(popup);
-    
   }, []);
-  const route = new LineString(currentCoordsArray);
 
+  useEffect(() => {
+    // if (!map.length) return;
+    console.log('USE EFFECT WORKS')
+    const route = new LineString(currentCoordsArray);
   const routeFeature = new Feature({
     type: 'route',
     geometry: route,
   });
 
-  
   const pointsFeature = 
     new Feature({
       type: 'points',
@@ -160,60 +111,37 @@ export default function MapWrapper(props) {
       })
     }));
     
-  
-  // console.log('MAAAAAAP!!', map);
-const vectorLayer = new VectorLayer({
-    source: new VectorSource({
-      features: [routeFeature, pointsFeature],
-    }),
-  });
 
-  useEffect(() => {
-    // if (!map.length) return;
-    console.log('USE EFFECT WORKS')
-    if (props.features.length > 0) {
+    const startIcon = new Feature({
+      type: 'start-icon',
+      geometry: new Point(route.getFirstCoordinate()),
+    });
+  
+    const endIcon = new Feature({
+      type: 'end-icon',
+      geometry: new Point(route.getLastCoordinate()),
+    });
+
+    startIcon.setStyle(new Style({
+      image: new Icon({
+        anchor: [0.5, 1],
+        src: '../../../public/start-marker.png'
+      })
+    }));
+   
+
+    if (props.features.length) {
     
       featuresLayer.setSource(
         new VectorSource({
-          features:[ pointsFeature, routeFeature]
+          features:[pointsFeature, routeFeature, startIcon, endIcon]
         })
       );
       
-       map?.getView().setZoom(8);
+      //  map?.getView().setZoom(8);
       //  map?.getView().setCenter();
-
-    }
-    
-  }, [featuresLayer, map, pointsFeature, props.features.length, routeFeature]);
-
-  
-
-
-  let popover;
-function disposePopover() {
-  if (popover) {
-    popover.dispose();
-    popover = undefined;
-  }
-}
-//______________________________________________________
-  const handleMapClick = (e) => {
-    const clickedCoord = e.coordinate;
-    const element = popup.getElement();
-    let popover = Popover.getInstance(element);
-    setSelectedCoord(clickedCoord);
-
-    popover = new Popover(element, {
-      animation: false,
-      container: element,
-      content: `<p>The location you clicked was: ${clickedCoord[0]}-${clickedCoord[1]}</p>`,
-      html: true,
-      placement: "top",
-      title: "",
-    });
-    popover.show();
-  
-  };
+    }  
+  }, [currentCoordsArray, featuresLayer, map, props.color, props.features.length]);
 
   return (
     <>

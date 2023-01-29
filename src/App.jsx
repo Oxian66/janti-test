@@ -2,7 +2,7 @@ import "./App.css";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MapWrapper from "./components/map/MapWrapper";
-import toast, { Toaster } from 'react-hot-toast';
+// import toast, { Toaster } from 'react-hot-toast';
 import Routes from "./components/routes/Routes";
 
 export default function App() {
@@ -17,7 +17,8 @@ export default function App() {
         setRoutes(res.data);
         
       } catch (e) {
-        toast.error(`Something going wrong: ${e.message}`);
+        // toast.error(`Something going wrong: ${e.message}`);
+        alert(`Something going wrong: ${e.message}`)
       }
     };
     fetchRoutes();
@@ -27,7 +28,7 @@ export default function App() {
     <div className="App">
       <Routes setChoosenRoute={setChoosenRoute} routes={routes} choosenRoute={choosenRoute} setColor={setColor} />
       <MapWrapper features={choosenRoute} color={color}/>
-      <Toaster />
+      {/* <Toaster /> */}
     </div>
   );
 }
