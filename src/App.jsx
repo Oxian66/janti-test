@@ -1,11 +1,15 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import MapWrapper from "./components/MapWrapper";
+import MapWrapper from "./components/map/MapWrapper";
+import toast, { Toaster } from 'react-hot-toast';
+import Routes from "./components/routes/Routes";
 
-function App() {
+export default function App() {
+
   const [color, setColor] = useState("");
   const [routes, setRoutes] = useState([]);
+  const [choosenRoute, setChoosenRoute] = useState([]);
   const [route, setRoute] = useState([]);
   const [copyRoutes, setCopyRoutes] = useState([]);
   const [id, setId] = useState();
@@ -85,4 +89,4 @@ function App() {
   );
 }
 
-export default App;
+
