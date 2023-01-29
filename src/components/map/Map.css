@@ -1,0 +1,7 @@
+.map-container{
+    height: 100vh;
+    width: 75rem;
+    flex-grow: 2;
+    flex-shrink: 2;
+    overflow: hidden;
+  }
