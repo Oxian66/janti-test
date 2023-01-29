@@ -5,11 +5,9 @@ import toast from 'react-hot-toast';
 
 export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor}) {
 
-//   const [routes, setRoutes] = useState([]);
-//   const [route, setRoute] = useState([]);
   const [copyRoutes, setCopyRoutes] = useState([]);
   const [id, setId] = useState();
-  const [isClicked, setClicked] = useState(false);
+  const [isVisible, setVisible] = useState(false);
   const [userInput, setUserInput] = useState("");
   console.log('route', choosenRoute);
 
@@ -34,7 +32,7 @@ export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor
     
       const filteredRoute = (e) => {
         if (e.key === "Enter") {
-          const filtered = copyRoutes.filter((route) => route.name === userInput.trim());
+          const filtered = copyRoutes.filter((route) => route.name.trim() === userInput.trim());
           setCopyRoutes(filtered);
         }
       };
@@ -46,6 +44,7 @@ export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor
           type="search"
           onChange={handleUserInput}
           onKeyDown={filteredRoute}
+          placeholder="Введите маршрут"
         />
         <ul>
           {copyRoutes.map((route) => (
@@ -70,11 +69,12 @@ export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor
         <button
           onClick={() => {
             setCopyRoutes(routes);
-            setUserInput("");
+            setUserInput('');
           }}
         >
           Отмена
         </button>
+        {isVisible && <button>Анимация движения</button>}
       </div>
     );
 }

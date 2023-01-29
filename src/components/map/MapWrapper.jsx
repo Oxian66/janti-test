@@ -12,6 +12,7 @@ import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from "ol/style";
 import GeoJSON from "ol/format/GeoJSON.js";
 import { Popover } from "bootstrap";
 import "ol/ol.css";
+import { toast } from "react-hot-toast";
 
 export default function MapWrapper(props) {
   const [map, setMap] = useState([]);
@@ -35,7 +36,7 @@ export default function MapWrapper(props) {
   //     : [];
   // };
 
-  // const currentPath = createPathCoords();
+  // const currentCoordsArray = createPathCoords();
 
   const currentCoordsArray = props.features.map((c) => [
     c.lon,
@@ -104,12 +105,9 @@ export default function MapWrapper(props) {
   // };
 
   useEffect(() => {
-    const place = [-110, 45];
-    const point = new Point(place);
-
     const initalFeaturesLayer = new VectorLayer({
       source: new VectorSource({
-        features: [new Feature(point)],
+        features: [],
       }),
     });
 
@@ -173,7 +171,7 @@ const vectorLayer = new VectorLayer({
   useEffect(() => {
     // if (!map.length) return;
     console.log('USE EFFECT WORKS')
-    if (props.features.length) { // may be null on first render
+    if (props.features.length > 0) {
     
       featuresLayer.setSource(
         new VectorSource({
@@ -181,10 +179,10 @@ const vectorLayer = new VectorLayer({
         })
       );
       
-      //  map.getView().setZoom(8);
+       map?.getView().setZoom(8);
+      //  map?.getView().setCenter();
 
     }
-    
     
   }, [featuresLayer, map, pointsFeature, props.features.length, routeFeature]);
 
