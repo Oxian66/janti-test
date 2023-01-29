@@ -22,7 +22,7 @@ export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor
           );
           setChoosenRoute(res.data);
         } catch (e) {
-          toast.error(`Something going wrong: ${e.message}`);
+          alert(`Something going wrong: ${e.message}`);
         }
       };
     
