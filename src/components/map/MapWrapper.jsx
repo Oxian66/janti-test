@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+ import './Map.css';
 import { Feature, Map, Overlay, View } from "ol/index.js";
 import OSM from "ol/source/OSM.js";
 import TileLayer from "ol/layer/Tile";
@@ -7,7 +8,7 @@ import VectorSource from "ol/source/Vector";
 import { ZoomSlider } from "ol/control.js";
 import { LineString, MultiPoint, Point } from 'ol/geom';
 import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from "ol/style";
-import Polyline from "ol/format/Polyline.js";
+// import Polyline from "ol/format/Polyline.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import { Popover } from "bootstrap";
 import "ol/ol.css";
@@ -21,9 +22,10 @@ export default function MapWrapper(props) {
   const mapElement = useRef();
   const mapRef = useRef();
   mapRef.current = map;
+  const element = document.getElementById('popup');
 
   const popup = new Overlay({
-    element: document.querySelector(".modal"),
+    element: element,
     stopEvent: false,
   });
 
@@ -35,80 +37,79 @@ export default function MapWrapper(props) {
 
   // const currentPath = createPathCoords();
 
-  const currentPath = props.features.map((c) => [
+  const currentCoordsArray = props.features.map((c) => [
     c.lon,
     c.lat,
   ]);
-  console.log("c", currentPath);
+  console.log("c", currentCoordsArray);
 
-  const points = currentPath.map((point) => new Point(point).transform('EPSG:4326', 'EPSG:3857',));
-
-  // const feature = new GeoJSON().readFeature(data, {
-  //   featureProjection: ' EPSG:3857'
+  // const points = currentCoordsArray.map((point) => new Point(point).transform('EPSG:4326', 'EPSG:3857',));
+  // const pointsFeature = new Feature({
+  //   type: 'point',
+  //   geometry: new Point(currentCoordsArray).transform(
+  //     'EPSG:4326',
+  //     'EPSG:3857',
+  //   ),
   // });
 
-  const line = new LineString(points);
+  // const line = new LineString(points);
 
-  const lineFeature = new Feature({
-    type: 'line',
-    geometry: line,
-  });
+  // const lineFeature = new Feature({
+  //   type: 'line',
+  //   geometry: line,
+  //   coordinates: points,
+  // });
 
-  const pointsFeature = new Feature({
-    type: 'point',
-    geometry: new Point(currentPath).transform(
-      'EPSG:4326',
-      'EPSG:3857',
-    ),
-  });
   
-  const startMarker = new Feature({
-    type: 'icon-start',
-    geometry: new Point(line.getFirstCoordinate()),
-  });
-  const endMarker = new Feature({
-    type: 'icon-end',
-    geometry: new Point(line.getLastCoordinate()),
-  });
+  // const startMarker = new Feature({
+  //   type: 'icon-start',
+  //   geometry: new Point(line.getFirstCoordinate()),
+  // });
+  // const endMarker = new Feature({
+  //   type: 'icon-end',
+  //   geometry: new Point(line.getLastCoordinate()),
+  // });
 
-  const styles = {
-    'line': new Style({
-      stroke: new Stroke({
-        width: 6,
-        color: [237, 212, 0, 0.8],
-      }),
-    }),
-    'icon-start': new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: 'public/start-marker.png',
-      }),
-    }),
-    'icon-end': new Style({
-      image: new Icon({
-        anchor: [0.5, 1],
-        src: 'public/end-marker.png',
-      }),
-    }),
-    'geoMarker': new Style({
-      image: new CircleStyle({
-        radius: 7,
-        fill: new Fill({color: 'black'}),
-        stroke: new Stroke({
-          color: 'white',
-          width: 2,
-        }),
-      }),
-    }),
-  };
+  // const styles = {
+  //   'line': new Style({
+  //     fill: new Fill({color: 'red'})
+  //   }),
+  //   'icon-start': new Style({
+  //     image: new Icon({
+  //       anchor: [0.5, 1],
+  //       src: 'public/start-marker.png',
+  //     }),
+  //   }),
+  //   'icon-end': new Style({
+  //     image: new Icon({
+  //       anchor: [0.5, 1],
+  //       src: 'public/end-marker.png',
+  //     }),
+  //   }),
+  //   'geoMarker': new Style({
+  //     image: new CircleStyle({
+  //       radius: 7,
+  //       fill: new Fill({color: 'black'}),
+  //       stroke: new Stroke({
+  //         color: 'white',
+  //         width: 2,
+  //       }),
+  //     }),
+  //   }),
+  //   'point': new Style({
+  //     'circle-radius': 9,
+  //       'circle-fill-color': 'red',
+
+  //   })
+  // };
 
   useEffect(() => {
+    const place = [-110, 45];
+    const point = new Point(place);
 
     const initalFeaturesLayer = new VectorLayer({
       source: new VectorSource({
-        features: [],
-        
-          // format: new GeoJSON(),
+        features: [new Feature(point)],
       }),
     });
 
@@ -119,13 +120,12 @@ export default function MapWrapper(props) {
     const zoomslider = new ZoomSlider();
 
     const initialMap = new Map({
-      target: mapRef.current ?? undefined,
+      target: mapElement.current,
       layers: [layer, initalFeaturesLayer, ],
       view: new View({
         center: [0, 0],
         zoom: 2,
         constrainResolution: true,
-        overlays: [popup]
       }),
     });
 
@@ -134,77 +134,73 @@ export default function MapWrapper(props) {
     initialMap.addControl(zoomslider);
     setFeaturesLayer(initalFeaturesLayer);
     initialMap.addOverlay(popup);
-    if (props.isClicked) {
-      const place = [-110, 45];
-     const point = new Point(place);
-     
-      const newFeaturesLayer = new VectorLayer({
-        source: new VectorSource({
-          features: [lineFeature, pointsFeature, startMarker, endMarker, new Feature(point)],
-            // format: new GeoJSON(),
-            style: (feature) => {
-              return styles[feature.get('type')];
-            },
-        }),
-      });
-       initialMap.addLayer(newFeaturesLayer);
-      
-    }
     
   }, []);
-  const route = new LineString(currentPath);
+  const route = new LineString(currentCoordsArray);
 
   const routeFeature = new Feature({
     type: 'route',
     geometry: route,
   });
+
   
+  const pointsFeature = 
+    new Feature({
+      type: 'points',
+      geometry: new MultiPoint(currentCoordsArray).transform(
+        'EPSG:4326',
+        'EPSG:3857',
+      ),
+    });
 
-  useEffect(() => {
+    pointsFeature.setStyle(new Style({
+      image: new CircleStyle({
+        radius: 3,
+        fill: new Fill({
+          color: props.color,
+        }),
+      })
+    }));
     
-    //   const place = [-110, 45];
-    //  const point = new Point(place);
-     
-    //   const newFeaturesLayer = new VectorLayer({
-    //     source: new VectorSource({
-    //       features: [new Feature(point)],
-    //         // format: new GeoJSON(),
-    //         style: (feature) => {
-    //           return styles[feature.get('type')];
-    //         },
-    //     }),
-    //   });
-    //   if (map) map.addLayer(newFeaturesLayer);
-    // if (!map.length) return
-    // map?.getLayers().forEach((layer) => {
-    //   if (layer.get('id') && layer.get('id') === 'activeRouteLayer') {
-    //     map?.removeLayer(layer);
-    //   }
-    // });
-    // map && map.addLayer(vectorLayer);
-    // if (props.features.length) {
-    //   featuresLayer.setSource(
-    //     new VectorSource({
-    //       features: new Feature(point )
-    //     })
-    //   )
-    // }
-    // map.addLayer(featuresLayer)
-    
-  }, [props.feature]);
-
-  const vectorLayer = new VectorLayer({
+  
+  // console.log('MAAAAAAP!!', map);
+const vectorLayer = new VectorLayer({
     source: new VectorSource({
-      features: [routeFeature, pointsFeature, startMarker, endMarker],
+      features: [routeFeature, pointsFeature],
     }),
   });
 
-  vectorLayer.set('id', 'activeRouteLayer');
+  useEffect(() => {
+    // if (!map.length) return;
+    console.log('USE EFFECT WORKS')
+    if (props.features.length) { // may be null on first render
+    
+      featuresLayer.setSource(
+        new VectorSource({
+          features:[ pointsFeature, routeFeature]
+        })
+      );
+      
+      //  map.getView().setZoom(8);
+
+    }
+    
+    
+  }, [featuresLayer, map, pointsFeature, props.features.length, routeFeature]);
+
+  
+
+
+  let popover;
+function disposePopover() {
+  if (popover) {
+    popover.dispose();
+    popover = undefined;
+  }
+}
 //______________________________________________________
   const handleMapClick = (e) => {
     const clickedCoord = e.coordinate;
-    const div = document.createElement('div');
-    div.classList.add('modal');
     const element = popup.getElement();
     let popover = Popover.getInstance(element);
     setSelectedCoord(clickedCoord);
@@ -217,13 +213,15 @@ export default function MapWrapper(props) {
       placement: "top",
       title: "",
     });
-    if (clickedCoord === '') popover.show();
+    popover.show();
+  
   };
 
-  console.log('pf', pointsFeature);
   return (
     <>
-      <div ref={mapRef} className="map-container"></div>
+      <div ref={mapElement} className="map-container">
+        <div id="popup"></div>
+      </div>
     </>
   );
 }

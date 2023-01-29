@@ -3,8 +3,8 @@ import './Routes.css';
 import axios from "axios";
 import toast from 'react-hot-toast';
 
-export default function Routes ({setChoosenRoute, routes, choosenRoute}) {
-    const [color, setColor] = useState("");
+export default function Routes ({setChoosenRoute, routes, choosenRoute, setColor}) {
+
 //   const [routes, setRoutes] = useState([]);
 //   const [route, setRoute] = useState([]);
   const [copyRoutes, setCopyRoutes] = useState([]);
@@ -17,7 +17,7 @@ export default function Routes ({setChoosenRoute, routes, choosenRoute}) {
 
     const handleClick = async (e) => {
         const _id = e.target.value;
-        setClicked(true);
+        // setClicked(true);
         try {
           const res = await axios.get(
             `https://janti.ru:5381/Main/GetRouteData?id=${_id}`
